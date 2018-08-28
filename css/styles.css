@@ -224,6 +224,20 @@ nav h1 a {
   top: 80px;
   width: 50%;
 }
+@media only screen and (max-width: 600px) {
+  .inside #map-container {
+    height: 30vh;
+    top: 15vh;
+    width: 100%;
+    position: absolute;
+  }
+  #breadcrumb {
+    width: 100vw;
+  }
+  #footer {
+    width: 100%;
+  }
+}
 .inside #map {
   background-color: #ccc;
   height: 100%;
