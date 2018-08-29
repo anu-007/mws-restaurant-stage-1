@@ -213,8 +213,8 @@ nav h1 a {
 .inside header {
   position: fixed;
   top: 0;
-  width: 100%;
-  z-index: 1000;
+  width: 100vw;
+  z-index: 10000;
 }
 .inside #map-container {
   background: blue none repeat scroll 0 0;
@@ -223,20 +223,6 @@ nav h1 a {
   right: 0;
   top: 80px;
   width: 50%;
-}
-@media only screen and (max-width: 600px) {
-  .inside #map-container {
-    height: 30vh;
-    top: 15vh;
-    width: 100%;
-    position: absolute;
-  }
-  #breadcrumb {
-    width: 100vw;
-  }
-  #footer {
-    width: 100%;
-  }
 }
 .inside #map {
   background-color: #ccc;
@@ -313,4 +299,30 @@ nav h1 a {
 }
 #restaurant-hours td {
   color: #666;
+}
+@media only screen and (max-width: 600px) {
+  .inside #map-container {
+    height: 30vh;
+    top: 15vh;
+    width: 100%;
+    position: absolute;
+  }
+  #breadcrumb {
+    width: calc(100% - 80px);
+  }
+  .inside #footer {
+    width: 100vw;
+    padding: 25px 0 25px;
+  }
+  #restaurant-container {
+    width: 100vw;
+    padding: 45vh 0 5vh;
+  }
+  #reviews-container {
+    width: 100vw;
+    padding: 0 0 5vh;
+  }
+  header {
+    width: 100vw;
+  }
 }
