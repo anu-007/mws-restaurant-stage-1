@@ -11,7 +11,22 @@ document.addEventListener('DOMContentLoaded', (event) => {
   initMap(); // added 
   fetchNeighborhoods();
   fetchCuisines();
+  registerServiceWorker(); 
 });
+
+/**
+ * Register a service worker for caching static and dynamic assets.
+ */
+registerServiceWorker = () => {
+  if (!navigator.serviceWorker) {
+    return;
+  }
+  navigator.serviceWorker.register('../sw.js').then(() => {
+    console.log('Service worker registered successfully!');
+  }).catch((error) => {
+    console.log('Error while registering service worker:', error);
+  });
+}
 
 /**
  * Fetch all neighborhoods and set their HTML.
@@ -161,6 +176,7 @@ createRestaurantHTML = (restaurant) => {
   const image = document.createElement('img');
   image.className = 'restaurant-img';
   image.src = DBHelper.imageUrlForRestaurant(restaurant);
+  image.alt = `${restaurant.name} restaurant image`;
   li.append(image);
 
   const name = document.createElement('h1');
