@@ -18,14 +18,13 @@ document.addEventListener('DOMContentLoaded', (event) => {
  * Register a service worker for caching static and dynamic assets.
  */
 registerServiceWorker = () => {
-  if (!navigator.serviceWorker) {
-    return;
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('../sw.js').then(() => {
+      console.log('Service worker Registered');
+    }).catch((error) => {
+      console.error(`Error while registering service worker: ${error}`);
+    });
   }
-  navigator.serviceWorker.register('../sw.js').then(() => {
-    console.log('Service worker registered successfully!');
-  }).catch((error) => {
-    console.log('Error while registering service worker:', error);
-  });
 }
 
 /**
@@ -194,6 +193,8 @@ createRestaurantHTML = (restaurant) => {
   const more = document.createElement('a');
   more.innerHTML = 'View Details';
   more.href = DBHelper.urlForRestaurant(restaurant);
+  more.setAttribute('role', 'button');
+  more.setAttribute('aria-label', 'view details of ' + restaurant.name + ' restaurant');
   li.append(more)
 
   return li
