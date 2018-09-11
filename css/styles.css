@@ -54,7 +54,6 @@ article, aside, canvas, details, figcaption, figure, footer, hgroup, menu, nav, 
   position: absolute;
   top: -50px;
   background: #fff;
-  color: #1976D2;
   padding: 10px;
   z-index: 100000;
 }
@@ -150,6 +149,10 @@ nav h1 a {
   padding: 8px;
   width: 20vw;
   flex-shrink: 1;
+}
+
+select:focus {
+  border: 4px solid black;
 }
 
 @media only screen and (max-width: 425px) {
