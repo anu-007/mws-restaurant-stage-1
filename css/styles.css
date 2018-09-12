@@ -196,7 +196,7 @@ select:focus {
   max-width: 100%;
   min-height: 248px;
 }
-#restaurants-list li h1 {
+#restaurants-list li h2 {
   color: #d14600;
   font-family: Arial,sans-serif;
   font-size: 14pt;
