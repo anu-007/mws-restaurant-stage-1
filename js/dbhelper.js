@@ -3,32 +3,51 @@
  */
 class DBHelper {
 
+  static createDb() {
+    let dbPromise = idb.open('mws', 1, (upgradeDb) => {
+      upgradeDb.createObjectStore('restaurants', {keyPath: 'id'});
+    });
+    return dbPromise;
+  }
+
   /**
    * Database URL.
    * Change this to restaurants.json file location on your server.
    */
   static get DATABASE_URL() {
-    const port = 8000 // Change this to your server port
-    return `http://localhost:${port}/data/restaurants.json`;
+    const port = 1337 // Change this to your server port
+    return `http://localhost:${port}/restaurants`;
   }
 
   /**
    * Fetch all restaurants.
    */
   static fetchRestaurants(callback) {
-    let xhr = new XMLHttpRequest();
-    xhr.open('GET', DBHelper.DATABASE_URL);
-    xhr.onload = () => {
-      if (xhr.status === 200) { // Got a success response from server!
-        const json = JSON.parse(xhr.responseText);
-        const restaurants = json.restaurants;
-        callback(null, restaurants);
-      } else { // Oops!. Got an error from server.
-        const error = (`Request failed. Returned status of ${xhr.status}`);
-        callback(error, null);
-      }
-    };
-    xhr.send();
+    let restaurantsDb = DBHelper.createDb();
+    fetch(DBHelper.DATABASE_URL)
+    .then((res) => res.json())
+    .then((data) => {
+      restaurantsDb.then((db) => {
+        let insertEntry = db.transaction('restaurants', 'readwrite');
+        let returnEntry = insertEntry.objectStore('restaurants');
+        for(let key in data){
+          returnEntry.put(data[key]);
+        }
+        console.log('data added to db');
+      });
+      callback(null, data);
+      return data;
+    })
+    .catch((err) => {
+      restaurantsDb.then((db) => {
+        let insertEntry = db.transaction('restaurants', 'readonly');
+        let returnEntry = insertEntry.objectStore('restaurants');
+        return returnEntry.getAll();
+      })
+      .then((items) => {
+        callback(null,items);
+      });
+    });
   }
 
   /**
@@ -150,7 +169,7 @@ class DBHelper {
    * Restaurant image URL.
    */
   static imageUrlForRestaurant(restaurant) {
-    return (`/img/${restaurant.photograph}`);
+    return (restaurant.photograph == parseInt(restaurant.photograph, 10)) ? (`/img/${restaurant.photograph}.jpg`) : (`/img/10.jpg`);
   }
 
   /**
