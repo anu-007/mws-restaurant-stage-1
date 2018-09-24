@@ -1,6 +1,8 @@
 /**
  * Common database helper functions.
  */
+import idb from './idb.js';
+console.log(idb);
 class DBHelper {
 
   static createDb() {
@@ -19,34 +21,60 @@ class DBHelper {
     return `http://localhost:${port}/restaurants`;
   }
 
+  static idbInit() {
+    return idb.open('mws', 1, (upgradeDb) => {
+      switch (upgradeDb.oldVersion) {
+        case 0:
+          upgradeDb.createObjectStore('restaurants');
+      }
+    });
+  }
+
+  static getRestaurantsFromDb(dbPromise) {
+    return dbPromise.then(function (db) {
+      if (!db) return;
+      let tx = db.transaction('restaurants');
+      let restaurantsStore = tx.objectStore('restaurants');
+      return restaurantsStore.get('restaurant-list');
+    });
+  }
+
+  static updateRestaurantsInDb(restaurants, dbPromise) {
+    return dbPromise.then(function (db) {
+      if (!db) return;
+      let tx = db.transaction('restaurants', 'readwrite');
+      let restaurantsStore = tx.objectStore('restaurants');
+      restaurantsStore.put(restaurants, 'restaurant-list');
+      tx.complete;
+    });
+  }
+
   /**
    * Fetch all restaurants.
    */
   static fetchRestaurants(callback) {
-    let restaurantsDb = DBHelper.createDb();
-    fetch(DBHelper.DATABASE_URL)
-    .then((res) => res.json())
-    .then((data) => {
-      restaurantsDb.then((db) => {
-        let insertEntry = db.transaction('restaurants', 'readwrite');
-        let returnEntry = insertEntry.objectStore('restaurants');
-        for(let key in data){
-          returnEntry.put(data[key]);
-        }
-        console.log('data added to db');
-      });
-      callback(null, data);
-      return data;
+    const dbPromise = DBHelper.idbInit();
+
+    DBHelper.getRestaurantsFromDb(dbPromise)
+    .then((restaurants) => {
+      if (restaurants && restaurants.length > 0) {
+        callback(null, restaurants);
+      } else {
+        return fetch(DBHelper.DATABASE_URL);
+      }
+    })
+    .then((response) => {
+      if (!response) return;
+      return response.json();
+    })
+    .then((restaurants) => {
+      if (!restaurants) return;
+      DBHelper.updateRestaurantsInDb(restaurants, dbPromise);
+      callback(null, restaurants);
     })
     .catch((err) => {
-      restaurantsDb.then((db) => {
-        let insertEntry = db.transaction('restaurants', 'readonly');
-        let returnEntry = insertEntry.objectStore('restaurants');
-        return returnEntry.getAll();
-      })
-      .then((items) => {
-        callback(null,items);
-      });
+      const errorMessage = (`Request failed. Error message: ${err}`);
+      callback(errorMessage, null);
     });
   }
 
@@ -198,3 +226,4 @@ class DBHelper {
 
 }
 
+export default DBHelper;
