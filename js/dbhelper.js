@@ -1,17 +1,9 @@
 /**
  * Common database helper functions.
  */
-import idb from './idb.js';
-console.log(idb);
+import './idb.js';
+
 class DBHelper {
-
-  static createDb() {
-    let dbPromise = idb.open('mws', 1, (upgradeDb) => {
-      upgradeDb.createObjectStore('restaurants', {keyPath: 'id'});
-    });
-    return dbPromise;
-  }
-
   /**
    * Database URL.
    * Change this to restaurants.json file location on your server.

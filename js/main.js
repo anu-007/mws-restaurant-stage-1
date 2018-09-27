@@ -10,8 +10,8 @@ import DBHelper from './dbhelper.js';
  */
 document.addEventListener('DOMContentLoaded', (event) => {
   initMap(); // added 
-  DBHelper.fetchNeighborhoods();
-  DBHelper.fetchCuisines();
+  fetchNeighborhoods();
+  fetchCuisines();
   registerServiceWorker(); 
 
   const neighborhoodsSelect = document.getElementById('neighborhoods-select');
