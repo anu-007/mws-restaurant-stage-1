@@ -1,11 +1,6 @@
 /*eslint-disable */
 import DBHelper from './dbhelper.js';
 
-// let restaurants,
-//   neighborhoods,
-//   cuisines
-// var newMap
-// var markers = []
 /**
  * Fetch neighborhoods and cuisines as soon as the page is loaded.
  */
@@ -58,6 +53,7 @@ const fillNeighborhoodsHTML = (neighborhoods = self.neighborhoods) => {
     const option = document.createElement('option');
     option.innerHTML = neighborhood;
     option.value = neighborhood;
+    option.role = 'option';
     select.append(option);
   });
 };
@@ -86,6 +82,7 @@ const fillCuisinesHTML = (cuisines = self.cuisines) => {
     const option = document.createElement('option');
     option.innerHTML = cuisine;
     option.value = cuisine;
+    option.role = 'option';
     select.append(option);
   });
 };

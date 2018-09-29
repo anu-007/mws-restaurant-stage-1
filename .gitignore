@@ -3,3 +3,6 @@ node_modules
 
 #production builds
 dist
+
+#webp images
+images/*.webp

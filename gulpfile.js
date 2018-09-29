@@ -15,32 +15,40 @@ const connect = require('gulp-connect');
 const gzip = require('gulp-gzip');
 const gzipStatic = require('connect-gzip-static');
 const gulpSequence = require('gulp-sequence');
+const webp = require('gulp-webp');
 
 // Paths for files
 const paths = {
   src: './',
   srcHTML: './*.html',
-  srcCSS: './**/*.css',
-  srcJS: './**/*.js',
+  srcCSS: './css/*.css',
+  srcJS: './js/*.js',
   srcJSmain: ['./js/main.js', './js/dbhelper.js'],
   srcJSrestaurant: ['./js/restaurant_info.js', './js/dbhelper.js'],
-  srcIMG: './**/*.{png,jpg}',
-  dist: 'dist',
-  distIndex: 'dist/index.html',
-  distCSS: 'dist/style',
-  distJS: 'dist/script',
-  distIMG: 'dist/img',
+  srcIMG: './img/*.{png,jpg}',
+  srcICONS: './icons/*.png',
+  dist: './dist',
+  distHTML: './dist/*.html',
+  distINDEX: './dist/index.html',
+  distCSS: './dist/style/',
+  distJS: './dist/script/',
+  distIMG: './dist/img/',
 };
 
 // Copy required files to dist
-gulp.task('copy:dist', () => gulp.src(['!gulpfile.js', '!node_modules/**', paths.srcIMG, './sw.js', 'manifest.json'])
-  .pipe(gulp.dest('./dist')));
+gulp.task('copy:dist', () => gulp.src(['!gulpfile.js', '!node_modules/**', 'sw.js', 'manifest.json', paths.srcICONS])
+  .pipe(gulp.dest(paths.dist)));
 
 // Linting task
 gulp.task('eslint', () => gulp.src(paths.srcJS)
   .pipe(eslint())
   .pipe(eslint.format())
   .pipe(eslint.failAfterError()));
+
+// Image tasks
+gulp.task('img:dist', () => gulp.src(paths.srcIMG)
+  .pipe(webp())
+  .pipe(gulp.dest(paths.distIMG)));
 
 // HTML tasks
 gulp.task('html:dist', () => gulp.src(paths.srcHTML)
@@ -56,8 +64,8 @@ gulp.task('css:dist', () => gulp.src(paths.srcCSS)
 
 // js task main.js
 gulp.task('js:main', () => {
-  paths.srcJSmain.map(jsFile => browserify({
-    entries: [jsFile],
+  paths.srcJSmain.map(js => browserify({
+    entries: [js],
   })
     .transform(babelify.configure({
       presets: ['env'],
@@ -75,8 +83,8 @@ gulp.task('js:main', () => {
 
 // js task restaurant.js
 gulp.task('js:restaurant', () => {
-  paths.srcJSrestaurant.map(jsFile => browserify({
-    entries: [jsFile],
+  paths.srcJSrestaurant.map(js => browserify({
+    entries: [js],
   })
     .transform(babelify.configure({
       presets: ['env'],
@@ -92,21 +100,21 @@ gulp.task('js:restaurant', () => {
 
 // Gzip HTML files
 gulp.task('gzip:html', () => {
-  gulp.src('./dist/*.html')
+  gulp.src(paths.distHTML)
     .pipe(gzip())
     .pipe(gulp.dest(paths.dist));
 });
 
 // Gzip CSS files
 gulp.task('gzip:css', () => {
-  gulp.src('./dist/style/*.min.css')
+  gulp.src(paths.distCSS)
     .pipe(gzip())
     .pipe(gulp.dest(paths.distCSS));
 });
 
 // Gzip js files
 gulp.task('gzip:js', () => {
-  gulp.src('./dist/script/*.js')
+  gulp.src(paths.distJS)
     .pipe(gzip())
     .pipe(gulp.dest(paths.distJS));
 });
@@ -114,7 +122,7 @@ gulp.task('gzip:js', () => {
 // Serve the build
 gulp.task('serve', () => {
   connect.server({
-    root: 'dist/index.html',
+    root: paths.distINDEX,
     port: 3000,
     middleware: () => [
       gzipStatic(__dirname, {
@@ -135,7 +143,7 @@ gulp.task('clean', () => {
 });
 
 // Production build
-gulp.task('build', gulpSequence('clean', 'html:dist', 'css:dist', 'js:dist', 'copy:dist', 'gzip:dist'));
+gulp.task('build', gulpSequence('clean', 'html:dist', 'css:dist', 'js:dist', 'img:dist', 'copy:dist', 'gzip:dist'));
 
 // Uglify scripts
 gulp.task('js:dist', gulpSequence('js:main', 'js:restaurant'));

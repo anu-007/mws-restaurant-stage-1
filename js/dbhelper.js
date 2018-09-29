@@ -2,7 +2,7 @@
 /**
  * Common database helper functions.
  */
-import './idb.js';
+import idb from 'idb';
 
 class DBHelper {
   /**
@@ -66,7 +66,7 @@ class DBHelper {
         callback(null, restaurants);
       })
       .catch((err) => {
-        const errorMessage = (`Request failed. Error message: ${err}`);
+        const errorMessage = (`Error fetching restaurants: ${err}`);
         callback(errorMessage, null);
       });
   }
@@ -190,7 +190,11 @@ class DBHelper {
    * Restaurant image URL.
    */
   static imageUrlForRestaurant(restaurant) {
-    return (restaurant.photograph == parseInt(restaurant.photograph, 10)) ? (`/img/${restaurant.photograph}.jpg`) : ('/img/10.jpg');
+    if (restaurant.photograph == parseInt(restaurant.photograph, 10)) {
+      return (`/img/${restaurant.photograph}.webp` || `/img/${restaurant.photograph}.jpg`);
+    } else {
+      return ('/img/10.webp' || '/img/10.jpg');
+    }
   }
 
   /**

@@ -1,16 +1,16 @@
+/*eslint-disable */
 const staticContentCache = 'restaurantStatic-v1';
 const dynamicContentCache = 'restaurantDynamic-v1';
 
 const cssFiles = [
   'https://unpkg.com/leaflet@1.3.1/dist/leaflet.css',
-  'css/styles.css'
+  'dist/style/style.min.css'
 ];
 
 const jsFiles = [
   'https://unpkg.com/leaflet@1.3.1/dist/leaflet.js',
-  'js/dbhelper.js',
-  'js/main.js',
-  'js/restaurant_info.js'
+  'dist/script/main.min.js',
+  'dist/script/restaurant.min.js'
 ];
 
 /**
@@ -24,11 +24,11 @@ self.addEventListener('install', (e) => {
         return cache.addAll([
           '/',
           ...cssFiles,
-          ...jsFiles
+          ...jsFiles,
         ]);
       }).catch(() => {
         console.log('Error caching static contents');
-      })
+      }),
   );
 });
 
@@ -47,9 +47,9 @@ self.addEventListener('activate', (e) => {
         })
           .map((cacheName) => {
             return caches.delete(cacheName);
-          })
+          }),
       );
-    })
+    }),
   );
 });
 
@@ -59,24 +59,24 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('fetch', (e) => {
   e.respondWith(
     caches.match(e.request)
-    .then((response) => {
-      if (response) {
-        return response;
-      }
-      let fetchRequest = e.request.clone();
-      return fetch(fetchRequest)
-        .then((response) => {
-          if(!response || response.status !== 200 || response.type !== 'basic') {
+      .then((response) => {
+        if (response) {
+          return response;
+        }
+        const fetchRequest = e.request.clone();
+        return fetch(fetchRequest)
+          .then((response) => {
+            if (!response || response.status !== 200 || response.type !== 'basic') {
+              return response;
+            }
+            const responseToCache = response.clone();
+            caches.open(dynamicContentCache)
+              .then((cache) => {
+                cache.put(e.request, responseToCache);
+              });
             return response;
-          }
-          let responseToCache = response.clone();
-          caches.open(dynamicContentCache)
-            .then((cache) => {
-              cache.put(e.request, responseToCache);
-            });
-            return response;
-        });
-    })
+          });
+      }),
     // .catch(() => {
     //   console.log('Not found in cache');
     // })
