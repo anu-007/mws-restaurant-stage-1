@@ -1,3 +1,4 @@
+/*eslint-disable */
 import DBHelper from './dbhelper.js';
 
 let restaurant;

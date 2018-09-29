@@ -1,3 +1,4 @@
+/*eslint-disable */
 /**
  * Common database helper functions.
  */
@@ -9,7 +10,7 @@ class DBHelper {
    * Change this to restaurants.json file location on your server.
    */
   static get DATABASE_URL() {
-    const port = 1337 // Change this to your server port
+    const port = 1337; // Change this to your server port
     return `http://localhost:${port}/restaurants`;
   }
 
@@ -23,19 +24,19 @@ class DBHelper {
   }
 
   static getRestaurantsFromDb(dbPromise) {
-    return dbPromise.then(function (db) {
+    return dbPromise.then((db) => {
       if (!db) return;
-      let tx = db.transaction('restaurants');
-      let restaurantsStore = tx.objectStore('restaurants');
+      const tx = db.transaction('restaurants');
+      const restaurantsStore = tx.objectStore('restaurants');
       return restaurantsStore.get('restaurant-list');
     });
   }
 
   static updateRestaurantsInDb(restaurants, dbPromise) {
-    return dbPromise.then(function (db) {
+    return dbPromise.then((db) => {
       if (!db) return;
-      let tx = db.transaction('restaurants', 'readwrite');
-      let restaurantsStore = tx.objectStore('restaurants');
+      const tx = db.transaction('restaurants', 'readwrite');
+      const restaurantsStore = tx.objectStore('restaurants');
       restaurantsStore.put(restaurants, 'restaurant-list');
       tx.complete;
     });
@@ -48,26 +49,26 @@ class DBHelper {
     const dbPromise = DBHelper.idbInit();
 
     DBHelper.getRestaurantsFromDb(dbPromise)
-    .then((restaurants) => {
-      if (restaurants && restaurants.length > 0) {
+      .then((restaurants) => {
+        if (restaurants && restaurants.length > 0) {
+          callback(null, restaurants);
+        } else {
+          return fetch(DBHelper.DATABASE_URL);
+        }
+      })
+      .then((response) => {
+        if (!response) return;
+        return response.json();
+      })
+      .then((restaurants) => {
+        if (!restaurants) return;
+        DBHelper.updateRestaurantsInDb(restaurants, dbPromise);
         callback(null, restaurants);
-      } else {
-        return fetch(DBHelper.DATABASE_URL);
-      }
-    })
-    .then((response) => {
-      if (!response) return;
-      return response.json();
-    })
-    .then((restaurants) => {
-      if (!restaurants) return;
-      DBHelper.updateRestaurantsInDb(restaurants, dbPromise);
-      callback(null, restaurants);
-    })
-    .catch((err) => {
-      const errorMessage = (`Request failed. Error message: ${err}`);
-      callback(errorMessage, null);
-    });
+      })
+      .catch((err) => {
+        const errorMessage = (`Request failed. Error message: ${err}`);
+        callback(errorMessage, null);
+      });
   }
 
   /**
@@ -130,7 +131,7 @@ class DBHelper {
       if (error) {
         callback(error, null);
       } else {
-        let results = restaurants
+        let results = restaurants;
         if (cuisine != 'all') { // filter by cuisine
           results = results.filter(r => r.cuisine_type == cuisine);
         }
@@ -152,9 +153,9 @@ class DBHelper {
         callback(error, null);
       } else {
         // Get all neighborhoods from all restaurants
-        const neighborhoods = restaurants.map((v, i) => restaurants[i].neighborhood)
+        const neighborhoods = restaurants.map((v, i) => restaurants[i].neighborhood);
         // Remove duplicates from neighborhoods
-        const uniqueNeighborhoods = neighborhoods.filter((v, i) => neighborhoods.indexOf(v) == i)
+        const uniqueNeighborhoods = neighborhoods.filter((v, i) => neighborhoods.indexOf(v) == i);
         callback(null, uniqueNeighborhoods);
       }
     });
@@ -170,9 +171,9 @@ class DBHelper {
         callback(error, null);
       } else {
         // Get all cuisines from all restaurants
-        const cuisines = restaurants.map((v, i) => restaurants[i].cuisine_type)
+        const cuisines = restaurants.map((v, i) => restaurants[i].cuisine_type);
         // Remove duplicates from cuisines
-        const uniqueCuisines = cuisines.filter((v, i) => cuisines.indexOf(v) == i)
+        const uniqueCuisines = cuisines.filter((v, i) => cuisines.indexOf(v) == i);
         callback(null, uniqueCuisines);
       }
     });
@@ -189,22 +190,23 @@ class DBHelper {
    * Restaurant image URL.
    */
   static imageUrlForRestaurant(restaurant) {
-    return (restaurant.photograph == parseInt(restaurant.photograph, 10)) ? (`/img/${restaurant.photograph}.jpg`) : (`/img/10.jpg`);
+    return (restaurant.photograph == parseInt(restaurant.photograph, 10)) ? (`/img/${restaurant.photograph}.jpg`) : ('/img/10.jpg');
   }
 
   /**
    * Map marker for a restaurant.
    */
-   static mapMarkerForRestaurant(restaurant, map) {
-    // https://leafletjs.com/reference-1.3.0.html#marker  
+  static mapMarkerForRestaurant(restaurant, map) {
+    // https://leafletjs.com/reference-1.3.0.html#marker
     const marker = new L.marker([restaurant.latlng.lat, restaurant.latlng.lng],
-      {title: restaurant.name,
-      alt: restaurant.name,
-      url: DBHelper.urlForRestaurant(restaurant)
-      })
-      marker.addTo(newMap);
+      {
+        title: restaurant.name,
+        alt: restaurant.name,
+        url: DBHelper.urlForRestaurant(restaurant),
+      });
+    marker.addTo(newMap);
     return marker;
-  } 
+  }
   /* static mapMarkerForRestaurant(restaurant, map) {
     const marker = new google.maps.Marker({
       position: restaurant.latlng,
@@ -215,7 +217,6 @@ class DBHelper {
     );
     return marker;
   } */
-
 }
 
 export default DBHelper;
