@@ -7,7 +7,7 @@ import idb from 'idb';
 export let reviewsToBeSynced = [];
 export let restaurantsToBeSynced = [];
 
-class DBHelper {
+export class DBHelper {
   /**
    * Base URL for server.
    */
@@ -46,7 +46,7 @@ class DBHelper {
   /**
    * Updates restaurants in idb.
    */
-  static updateRestaurantsToDB(dbPromise, restaurants) {
+  static updateRestaurantsInDb(dbPromise, restaurants) {
     return dbPromise.then((db) => {
       if (!db) return;
       const tx = db.transaction('restaurants', 'readwrite');
@@ -97,7 +97,7 @@ class DBHelper {
           }
           return restaurantFromDB;
         });
-        DBHelper.updateRestaurantsToDB(dbPromise, updatedRestaurants);
+        DBHelper.updateRestaurantsInDB(dbPromise, updatedRestaurants);
 
         if (navigator.onLine) {
           DBHelper.updateFavoriteToServer(restaurant);
@@ -364,7 +364,6 @@ class DBHelper {
 
     DBHelper.getRestaurantsFromDb(dbPromise)
       .then((restaurants) => {
-        console
         // IF restaurants found in idb
         if (restaurants && restaurants.length > 0) {
           callback(null, restaurants);
@@ -379,7 +378,7 @@ class DBHelper {
       .then((restaurants) => {
         if (!restaurants) return;
         // Inserting updated restaurants data to idb
-        DBHelper.updateRestaurantsInDb(restaurants, dbPromise);
+        DBHelper.updateRestaurantsInDb(dbPromise, restaurants);
         callback(null, restaurants);
       })
       .catch((err) => {

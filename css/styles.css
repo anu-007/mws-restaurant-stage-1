@@ -90,6 +90,7 @@ nav h1 a {
   text-align: center;
   background-color: #666;
   display: none;
+  vertical-align: middle;
 }
 #breadcrumb {
     padding: 10px 40px 16px;
@@ -363,6 +364,7 @@ select:focus {
 #reviewer-name {
   line-height: 4vh;
   width: 60%;
+  font-size: 10pt;
 }
 .reviewer-info, .reviewer-feedback {
   display: flex;
@@ -453,7 +455,7 @@ textarea {
 }
 @media only screen and (max-width: 600px) {
   #maincontent section {
-    width: 100vw;
+    width: 100%;
   }
   .inside #map-container {
     height: 30vh;

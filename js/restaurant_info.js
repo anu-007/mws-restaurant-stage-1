@@ -167,7 +167,10 @@ const createReviewHTML = (review) => {
 
   const date = document.createElement('p');
 
-  date.innerHTML = new Date(review.createdAt);
+  let dte = new Date(review.createdAt).getDate();
+  let month = new Date(review.createdAt).getMonth(); //Be careful! January is 0 not 1
+  let year = new Date(review.createdAt).getFullYear();
+  date.innerHTML = `${dte}-${month + 1}- ${year}`;
   li.appendChild(date);
 
   return li;
@@ -180,12 +183,9 @@ const addReview = (event) => {
   const commentsField = document.querySelector('#reviewer-comment');
   const ratingField = document.querySelector('.messageCheckbox:checked');
 
-  const name = nameField.value;
-  const comments = commentsField.value;
-  const rating = ratingField.value;
-
-  if (!name || !rating || !comments) {
+  if (!nameField.value || !ratingField.value || !commentsField.value) {
     let connectionStatus = document.getElementById('notification');
+    connectionStatus.style.display = 'block';
     connectionStatus.style.backgroundColor = '#f44242';
     connectionStatus.innerHTML = 'Please Fill Remaining Form Fields!';
     setTimeout(() => {
@@ -195,9 +195,9 @@ const addReview = (event) => {
   }
   const review = {
     restaurant_id: self.restaurant.id,
-    name,
-    rating,
-    comments,
+    'name': nameField.value,
+    'rating': commentsField.value,
+    'comments': ratingField.value,
     createdAt: new Date(Date.now())
   };
   const ul = document.getElementById('reviews-list');
@@ -221,13 +221,18 @@ const resetReviewForm = (nameField, ratingField, commentsField) => {
 const syncReviewsWithServer = () => {
   Promise.all(reviewsToBeSynced.map(review => {
     DBHelper.postReviewToServer(review);
-  })).then(_ => {
+  }))
+  .then(_ => {
     let connectionStatus = document.getElementById('notification');
-    connectionStatus.style.backgroundColor = '#419bf4';
-    connectionStatus.innerHTML = 'Background sync has been completed successfully';
-    setTimeout(() => {
-      connectionStatus.style.display = 'none';
-    }, 5000);
+    if(connectionStatus.style.display === 'none') {
+      setTimeout(() => {
+        connectionStatus.style.display === 'block';
+        connectionStatus.style.backgroundColor = '#3fba4f';
+        connectionStatus.innerHTML = 'Background sync has been completed successfully';
+        connectionStatus.style.display = 'none';
+      }, 5000);
+      syncReviewsWithServer();
+    }
     reviewsToBeSynced.length = 0;
   }).catch(_ => {
     reviewsToBeSynced.length = 0;
