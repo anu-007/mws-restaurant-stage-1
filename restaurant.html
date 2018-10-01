@@ -20,6 +20,7 @@
     <nav>
       <h1><a href="/">Restaurant Reviews</a></h1>
     </nav>
+    <section id="notification"></section>
     <!-- Beginning breadcrumb -->
     <ul id="breadcrumb" aria-label="breadcrumb navigation" role="navigation">
       <li><a href="/">Home</a></li>
@@ -48,6 +49,54 @@
     <!-- Beginning reviews -->
     <section id="reviews-container">
       <ul id="reviews-list"></ul>
+      <section role="form" id="user-review">
+        <h2>Add Your Review</h2>
+
+        <div class="rating">
+          <label>
+            <input type="radio" class="messageCheckbox" name="stars" value="1" />
+            <span class="icon">&#9733;</span>
+          </label>
+          <label>
+            <input type="radio" class="messageCheckbox" name="stars" value="2" />
+            <span class="icon">&#9733;</span>
+            <span class="icon">&#9733;</span>
+          </label>
+          <label>
+            <input type="radio" class="messageCheckbox" name="stars" value="3" />
+            <span class="icon">&#9733;</span>
+            <span class="icon">&#9733;</span>
+            <span class="icon">&#9733;</span>   
+          </label>
+          <label>
+            <input type="radio" class="messageCheckbox" name="stars" value="4" />
+            <span class="icon">&#9733;</span>
+            <span class="icon">&#9733;</span>
+            <span class="icon">&#9733;</span>
+            <span class="icon">&#9733;</span>
+          </label>
+          <label>
+            <input type="radio" class="messageCheckbox" name="stars" value="5" />
+            <span class="icon">&#9733;</span>
+            <span class="icon">&#9733;</span>
+            <span class="icon">&#9733;</span>
+            <span class="icon">&#9733;</span>
+            <span class="icon">&#9733;</span>
+          </label>
+        </div>
+
+        <div class="reviewer-info">
+          <label for="reviewer-name">Name</label>
+          <input role="textbox" type="text" id="reviewer-name" aria-label="Please enter your name" aria-required="true" />
+        </div>
+
+        <div class="reviewer-feedback">
+          <label for="reviewer-comment">Comment</label>
+          <textarea role="textbox" id="reviewer-comment"  aria-label="Please enter some comments" aria-required="true" ></textarea>
+        </div>
+
+        <button id='submit-review' type="submit" role="button" aria-label="Click to save review">Submit</button>
+      </section>
     </section>
     <!-- End reviews -->
   </main>

@@ -1,14 +1,20 @@
 /*eslint-disable */
-import DBHelper from './dbhelper.js';
-
-let restaurant;
-//let newMap;
+import {
+  DBHelper,
+  reviewsToBeSynced
+} from './dbhelper.js';
 
 /**
  * Initialize map as soon as the page is loaded.
  */
 document.addEventListener('DOMContentLoaded', (event) => {  
   initMap();
+  const btnSubmitReview = document.querySelector('#submit-review');
+  btnSubmitReview.addEventListener('click', addReview);
+
+  window.addEventListener('online', isOnline);
+  window.addEventListener('offline', isOnline);
+  isOnline();
 });
 
 /**
@@ -36,23 +42,7 @@ const initMap = () => {
       DBHelper.mapMarkerForRestaurant(self.restaurant, self.newMap);
     }
   });
-}  
- 
-/* window.initMap = () => {
-  fetchRestaurantFromURL((error, restaurant) => {
-    if (error) { // Got an error!
-      console.error(error);
-    } else {
-      self.map = new google.maps.Map(document.getElementById('map'), {
-        zoom: 16,
-        center: restaurant.latlng,
-        scrollwheel: false
-      });
-      fillBreadcrumb();
-      DBHelper.mapMarkerForRestaurant(self.restaurant, self.map);
-    }
-  });
-} */
+}
 
 /**
  * Get current restaurant from page URL.
@@ -132,19 +122,29 @@ const fillReviewsHTML = (reviews = self.restaurant.reviews) => {
   const container = document.getElementById('reviews-container');
   const title = document.createElement('h2');
   title.innerHTML = 'Reviews';
-  container.appendChild(title);
+  container.insertAdjacentElement('afterbegin', title);
 
-  if (!reviews) {
+  const reviewForm = document.querySelector('.review-input');
+  const restaurantId = self.restaurant.id;
+
+  DBHelper.fetchRestaurantReviewsById(restaurantId)
+  .then(reviews => {
+    if (!reviews || (reviews && reviews.length === 0)) {
+      const noReviews = document.createElement('p');
+      noReviews.innerHTML = 'No reviews Found';
+      container.insertBefore(noReviews, reviewForm);
+      return;
+    }
+    const ul = document.getElementById('reviews-list');
+    reviews.forEach(review => {
+      ul.appendChild(createReviewHTML(review));
+    });
+  })
+  .catch(_ => {
     const noReviews = document.createElement('p');
-    noReviews.innerHTML = 'No reviews yet!';
-    container.appendChild(noReviews);
-    return;
-  }
-  const ul = document.getElementById('reviews-list');
-  reviews.forEach(review => {
-    ul.appendChild(createReviewHTML(review));
+    noReviews.innerHTML = 'No reviews Found';
+    container.insertBefore(noReviews, reviewForm);
   });
-  container.appendChild(ul);
 }
 
 /**
@@ -166,10 +166,96 @@ const createReviewHTML = (review) => {
   li.appendChild(name);
 
   const date = document.createElement('p');
-  date.innerHTML = review.date;
+
+  date.innerHTML = new Date(review.createdAt);
   li.appendChild(date);
 
   return li;
+}
+/**
+ * Add review entered by user.
+ */
+const addReview = (event) => {
+  const nameField = document.querySelector('#reviewer-name');
+  const commentsField = document.querySelector('#reviewer-comment');
+  const ratingField = document.querySelector('.messageCheckbox:checked');
+
+  const name = nameField.value;
+  const comments = commentsField.value;
+  const rating = ratingField.value;
+
+  if (!name || !rating || !comments) {
+    let connectionStatus = document.getElementById('notification');
+    connectionStatus.style.backgroundColor = '#f44242';
+    connectionStatus.innerHTML = 'Please Fill Remaining Form Fields!';
+    setTimeout(() => {
+      connectionStatus.style.display = 'none';
+    }, 5000);
+    return;
+  }
+  const review = {
+    restaurant_id: self.restaurant.id,
+    name,
+    rating,
+    comments,
+    createdAt: new Date(Date.now())
+  };
+  const ul = document.getElementById('reviews-list');
+  ul.appendChild(createReviewHTML(review));
+  DBHelper.postReviewToDB(review);
+  resetReviewForm(nameField, ratingField, commentsField);
+};
+
+/**
+ * Reset review form.
+ */
+const resetReviewForm = (nameField, ratingField, commentsField) => {
+  nameField.value = '';
+  ratingField.value = null;
+  commentsField.value = '';
+};
+
+/**
+ * Sync reviews with server.
+ */
+const syncReviewsWithServer = () => {
+  Promise.all(reviewsToBeSynced.map(review => {
+    DBHelper.postReviewToServer(review);
+  })).then(_ => {
+    let connectionStatus = document.getElementById('notification');
+    connectionStatus.style.backgroundColor = '#419bf4';
+    connectionStatus.innerHTML = 'Background sync has been completed successfully';
+    setTimeout(() => {
+      connectionStatus.style.display = 'none';
+    }, 5000);
+    reviewsToBeSynced.length = 0;
+  }).catch(_ => {
+    reviewsToBeSynced.length = 0;
+  });
+};
+
+/**
+ * Trigger notification when restaurant reviews page is online.
+ */
+const isOnline = () => {
+  let connectionStatus = document.getElementById('notification');
+  if (navigator.onLine){
+    if(connectionStatus.style.display === 'block') {
+      connectionStatus.style.backgroundColor = '#3fba4f';
+      connectionStatus.innerHTML = 'You are currently online! syncing data';
+      setTimeout(() => {
+        connectionStatus.style.display = 'none';
+        connectionStatus.innerHTML = 'You are currently online! syncing data';
+      }, 5000);
+      syncReviewsWithServer();
+    }
+  } else {
+    setTimeout(() => {
+      connectionStatus.style.display = 'block';
+      connectionStatus.innerHTML = 'You are currently offline. Any requests made will be queued and synced as soon as you are connected again.';
+    }, 5000);
+    connectionStatus.style.display = 'none';
+  }
 }
 
 /**

@@ -1,5 +1,8 @@
 /*eslint-disable */
-import DBHelper from './dbhelper.js';
+import {
+  DBHelper,
+  restaurantsToBeSynced
+} from './dbhelper.js';
 
 /**
  * Fetch neighborhoods and cuisines as soon as the page is loaded.
@@ -15,6 +18,10 @@ document.addEventListener('DOMContentLoaded', (event) => {
 
   const cuisinesSelect = document.getElementById('cuisines-select');
   cuisinesSelect.addEventListener('change', updateRestaurants);
+
+  window.addEventListener('online', isOnline);
+  window.addEventListener('offline', isOnline);
+  isOnline();
 });
 
 /**
@@ -107,18 +114,6 @@ const initMap = () => {
 
   updateRestaurants();
 };
-/* window.initMap = () => {
-  let loc = {
-    lat: 40.722216,
-    lng: -73.987501
-  };
-  self.map = new google.maps.Map(document.getElementById('map'), {
-    zoom: 12,
-    center: loc,
-    scrollwheel: false
-  });
-  updateRestaurants();
-} */
 
 /**
  * Update page and map for current restaurants.
@@ -196,11 +191,31 @@ const createRestaurantHTML = (restaurant) => {
   li.append(address);
 
   const more = document.createElement('a');
+  more.className = 'card-action-view';
   more.innerHTML = 'View Details';
-  more.href = DBHelper.urlForRestaurant(restaurant);
+  more.href = `./restaurant.html?id=${restaurant.id}`;
+  // Make link have role of button with better label for improved accessibility and user experience.
   more.setAttribute('role', 'button');
   more.setAttribute('aria-label', `view details of ${restaurant.name} restaurant`);
-  li.append(more);
+
+  const favorite = document.createElement('button');
+  favorite.className = 'card-action-favorite';
+  favorite.dataset.id = restaurant.id;
+  favorite.dataset.favorite = (restaurant.is_favorite == undefined || restaurant.is_favorite == 'undefined' || restaurant.is_favorite === false || restaurant.is_favorite === 'false') ? false : true;
+  favorite.setAttribute('aria-label', `mark ${restaurant.name} restaurant as favorite`);
+  if (favorite.dataset.favorite === 'true') {
+    favorite.innerHTML = '&#9829;';
+  } else if (favorite.dataset.favorite === 'false') {
+    favorite.innerHTML = '&#9825;';
+  }
+  favorite.addEventListener('click', toggleFavoriteRestaurant);
+
+  const actionButtonList = document.createElement('section');
+  actionButtonList.className = 'card-action';
+  actionButtonList.append(more);
+  actionButtonList.append(favorite);
+
+  li.append(actionButtonList);
 
   return li;
 };
@@ -219,13 +234,63 @@ const addMarkersToMap = (restaurants = self.restaurants) => {
     self.markers.push(marker);
   });
 };
-/* addMarkersToMap = (restaurants = self.restaurants) => {
-  restaurants.forEach(restaurant => {
-    // Add marker to the map
-    const marker = DBHelper.mapMarkerForRestaurant(restaurant, self.map);
-    google.maps.event.addListener(marker, 'click', () => {
-      window.location.href = marker.url
-    });
-    self.markers.push(marker);
+
+/**
+ * Toggle restaurant as favorite.
+ */
+const toggleFavoriteRestaurant = (event) => {
+  const restaurantId = event.target.dataset.id;
+  let isFavorite = event.target.dataset.favorite;
+
+  if (isFavorite === 'false') {
+    isFavorite = 'true';
+    event.target.innerHTML = '&#10084;';
+  } else if (isFavorite === 'true') {
+    isFavorite = 'false';
+    event.target.innerHTML = '&#9825;';
+  }
+  event.target.dataset.favorite = isFavorite;
+
+  const restaurant = {
+    restaurantId: restaurantId,
+    isFavorite: isFavorite
+  };
+  DBHelper.updateFavoriteToDB(restaurant);
+};
+
+/**
+ * Synce favorite restaurants with server.
+ */
+const syncFavoriteRestaurantsWithServer = () => {
+  Promise.all(restaurantsToBeSynced.map(restaurant => {
+    DBHelper.updateFavoriteToServer(restaurant);
+  })).then(_ => {
+    Toast.showToast('Background Sync For Favorites Has Been Completed Successfully!');
+    restaurantsToBeSynced.length = 0;
+  }).catch(_ => {
+    restaurantsToBeSynced.length = 0;
   });
-} */
+};
+
+/**
+ * Trigger notification when restaurant reviews page is online.
+ */
+const isOnline = () => {
+  let connectionStatus = document.getElementById('notification');
+  if (navigator.onLine){
+    if(connectionStatus.style.display === 'block') {
+      connectionStatus.style.backgroundColor = '#3fba4f';
+      connectionStatus.innerHTML = 'You are currently online! syncing data';
+      setTimeout(() => {
+        connectionStatus.style.display = 'none';
+      }, 5000);
+      syncFavoriteRestaurantsWithServer();
+    }
+  } else {
+    setTimeout(() => {
+      connectionStatus.style.display = 'block';
+      connectionStatus.innerHTML = 'You are currently offline. Any requests made will be queued and synced as soon as you are connected again.';
+    }, 5000);
+    connectionStatus.style.display = 'none';
+  }
+}
