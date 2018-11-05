@@ -39,6 +39,7 @@
     "gulp-htmlclean": "^2.7.22",
     "gulp-sequence": "^1.0.0",
     "gulp-sourcemaps": "^2.6.4",
+    "gulp-surge": "^0.1.0",
     "gulp-uglify": "^3.0.1",
     "gulp-webp": "^3.0.0",
     "vinyl-buffer": "^1.0.1",

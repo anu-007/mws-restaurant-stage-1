@@ -13,7 +13,7 @@ export class DBHelper {
    */
   static get BASE_URL() {
     const port = 1337;
-    return `http://localhost:${port}/`;
+    return 'https://mws-api.herokuapp.com/';
   }
 
   /**

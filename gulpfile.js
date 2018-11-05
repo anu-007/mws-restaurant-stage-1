@@ -1,3 +1,4 @@
+/*eslint-disable */
 const gulp = require('gulp');
 const htmlclean = require('gulp-htmlclean');
 const cleanCSS = require('gulp-clean-css');
@@ -16,6 +17,7 @@ const gzip = require('gulp-gzip');
 const gzipStatic = require('connect-gzip-static');
 const gulpSequence = require('gulp-sequence');
 const webp = require('gulp-webp');
+const surge = require('gulp-surge');
 
 // Paths for files
 const paths = {
@@ -140,6 +142,14 @@ gulp.task('watch', ['eslint'], () => {
 // Cleaning up dist directory
 gulp.task('clean', () => {
   del([paths.dist]);
+});
+
+// Deploy task
+gulp.task('deploy', [], () => {
+  return surge({
+    project: './dist',
+    domain: 'gentle-front.surge.sh',
+  });
 });
 
 // Production build
